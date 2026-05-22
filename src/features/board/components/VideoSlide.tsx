@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Volume2, VolumeX, Pause, Play } from "lucide-react";
+import { Volume2, VolumeX, Pause } from "lucide-react";
 
 interface VideoSlideProps {
   url: string;
@@ -30,7 +30,7 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
 
     let isMounted = true;
 
-    // Helper to initialize Player
+    // Helper to initialize Player on the existing iframe
     const initPlayer = () => {
       if (!isMounted) return;
 
@@ -39,24 +39,16 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
 
       try {
         playerRef.current = new YT.Player(containerId.current, {
-          videoId: videoId,
-          width: "100%",
-          height: "100%",
-          playerVars: {
-            autoplay: 1,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            modestbranding: 1,
-            rel: 0,
-            showinfo: 0,
-            iv_load_policy: 3,
-            origin: window.location.origin,
-            mute: isMuted ? 1 : 0,
-          },
           events: {
             onReady: (event: any) => {
               if (isMounted) {
+                // Ensure initial mute state is correct
+                if (isMuted) {
+                  event.target.mute();
+                } else {
+                  event.target.unMute();
+                }
+
                 if (isPaused) {
                   event.target.pauseVideo();
                 } else {
@@ -70,16 +62,16 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
                 onComplete();
               }
             },
-            onError: () => {
+            onError: (err: any) => {
               if (isMounted) {
-                console.error("YouTube Player error encountered, skipping.");
+                console.error("YouTube Player error encountered, skipping.", err);
                 onComplete();
               }
             },
           },
         });
       } catch (err) {
-        console.error("Error creating YT.Player:", err);
+        console.error("Error creating YT.Player on iframe:", err);
         onComplete();
       }
     };
@@ -140,7 +132,7 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
           if (state !== 1) playerRef.current.playVideo(); // 1 is playing state
         }
       } catch (err) {
-        console.warn("Unable to sync pause/play state", err);
+        console.warn("Unable to sync play/pause state", err);
       }
     }
   }, [isPaused]);
@@ -155,7 +147,17 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
     >
       {/* Container Element injected into by YouTube Player API */}
       <div className="absolute inset-0 w-full h-full relative z-0 scale-105 pointer-events-none">
-        <div id={containerId.current} className="w-full h-full" />
+        {videoId && (
+          <iframe
+            id={containerId.current}
+            className="w-full h-full"
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            title="YouTube video player"
+            frameBorder="0"
+            style={{ width: "100%", height: "100%", border: "none" }}
+          />
+        )}
       </div>
 
       {/* Transparent Overlay to block interactive click-jacking which disrupts the sign display loop */}
@@ -164,7 +166,10 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
       {/* Floating Audio Toggle Controls */}
       <div className="absolute bottom-10 left-6 md:left-20 z-20 flex items-center gap-3">
         <button
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={(e) => {
+            e.stopPropagation(); // Avoid triggering full screen pause
+            setIsMuted(!isMuted);
+          }}
           className="flex items-center gap-2.5 bg-black/75 border border-white/20 hover:border-red-600/50 hover:bg-black text-white px-4 py-2.5 text-xs font-mono tracking-widest uppercase transition-all duration-300 rounded-sm cursor-pointer shadow-lg outline-none"
         >
           {isMuted ? (

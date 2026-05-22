@@ -18,6 +18,7 @@ export const boardConfigSchema = z.object({
   enabledSlides: z.record(z.string(), z.boolean()).default(
     AVAILABLE_SLIDES.reduce((acc, s) => ({ ...acc, [s.id]: s.id !== "video" }), {})
   ),
+  interleaveVideo: z.boolean().default(false),
 });
 
 export type BoardConfig = z.infer<typeof boardConfigSchema>;

@@ -15,10 +15,11 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
     watch,
     formState: { errors },
   } = useForm<Omit<BoardConfig, "playlistOrder" | "enabledSlides">>({
-    resolver: zodResolver(boardConfigSchema.pick({ slideDuration: true, youtubeUrl: true })),
+    resolver: zodResolver(boardConfigSchema.pick({ slideDuration: true, youtubeUrl: true, interleaveVideo: true })) as any,
     defaultValues: {
       slideDuration: 6,
       youtubeUrl: "",
+      interleaveVideo: false,
     },
   });
 
@@ -69,6 +70,7 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
       youtubeUrl: data.youtubeUrl,
       playlistOrder: playlistOrder,
       enabledSlides: finalEnabled,
+      interleaveVideo: data.interleaveVideo,
     });
   };
 
@@ -123,6 +125,28 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
                 <p className="text-[10px] italic opacity-40 leading-relaxed">
                   Tip: Supports full videos or 24/7 stream feeds. Unmute toggle available in layout.
                 </p>
+              </div>
+
+              {/* Interleave Toggle */}
+              <div className="flex items-start gap-3 bg-black/40 border border-[#222]/60 p-4 rounded-sm">
+                <div className="flex items-center h-5">
+                  <input
+                    id="interleaveVideo"
+                    type="checkbox"
+                    {...register("interleaveVideo")}
+                    className="w-4 h-4 bg-[#0A0A0A] border-[#2a2a2a] text-red-600 rounded-sm focus:ring-0 cursor-pointer accent-red-600"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label htmlFor="interleaveVideo" className="text-xs font-medium text-white cursor-pointer select-none">
+                    Intercalar Slides e Vídeo
+                  </label>
+                  <span className="text-[10px] text-zinc-500 font-light mt-0.5 leading-relaxed">
+                    Ativado: Alterna entre cada slide comum e o vídeo (Slide 1 ➔ Vídeo ➔ Slide 2 ➔ Vídeo...).
+                    <br />
+                    Desativado: Exibe todos os slides juntos e o vídeo apenas ao final do ciclo.
+                  </span>
+                </div>
               </div>
 
               {/* Dynamic Playlist Sequence Customizer */}

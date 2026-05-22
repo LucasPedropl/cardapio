@@ -31,9 +31,9 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
   const rawOrder = config.playlistOrder || [];
   const rawEnabled = config.enabledSlides || {};
 
-  // Build the dynamic playlist sequence mapped exactly to user ordering
-  const playlist: SlideItem[] = rawOrder
-    .filter((id) => rawEnabled[id] !== false) // Only include enabled slides
+  // Get all enabled non-video slides according to user ordering
+  const nonVideoSlides: SlideItem[] = rawOrder
+    .filter((id) => id !== "video" && rawEnabled[id] !== false)
     .map((id) => {
       switch (id) {
         case "product_1":
@@ -50,16 +50,37 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
           return { type: "desserts" as const, id };
         case "salads":
           return { type: "salads" as const, id };
-        case "video":
-          if (config.youtubeUrl) {
-            return { type: "video" as const, url: config.youtubeUrl, id };
-          }
-          return null;
         default:
           return null;
       }
     })
     .filter((item) => item !== null) as SlideItem[];
+
+  // Build final playlist based on layout interleaving settings
+  let playlist: SlideItem[] = [];
+  const videoItem: SlideItem | null = config.youtubeUrl
+    ? { type: "video" as const, url: config.youtubeUrl, id: "video" }
+    : null;
+
+  if (config.interleaveVideo && videoItem) {
+    // Interleaved mode: Slide 1 -> Video -> Slide 2 -> Video...
+    nonVideoSlides.forEach((slide, idx) => {
+      playlist.push(slide);
+      playlist.push({
+        ...videoItem,
+        id: `video-interleaved-${idx}-${slide.id}`,
+      });
+    });
+  } else {
+    // Standard mode: Slides list first, and then the video at the end of loop
+    playlist = [...nonVideoSlides];
+    if (videoItem && rawEnabled["video"] !== false) {
+      playlist.push({
+        ...videoItem,
+        id: "video-at-end",
+      });
+    }
+  }
 
   const currentItem = playlist[currentIndex];
 
@@ -116,7 +137,16 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
   }
 
   return (
-    <div className="w-full h-screen bg-[#050505] overflow-hidden relative select-none">
+    <div 
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest("button") || target.closest("input") || target.closest("a") || target.closest("label")) {
+          return;
+        }
+        setIsPaused((prev) => !prev);
+      }}
+      className="w-full h-screen bg-[#050505] overflow-hidden relative select-none cursor-pointer"
+    >
       {/* Dynamic Floating Command Instructions */}
       <div className="absolute top-4 left-4 z-50 text-white/20 hover:text-white/40 transition-colors text-[9px] font-mono uppercase tracking-widest pointer-events-none flex items-center gap-3">
         <span>ESC: EXIT</span>
