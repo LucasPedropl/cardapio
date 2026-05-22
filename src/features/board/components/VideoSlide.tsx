@@ -26,6 +26,7 @@ export function VideoSlide({
   onProgressUpdate
 }: VideoSlideProps) {
   const [isMuted, setIsMuted] = useState(false);
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
   const [initialStartAt] = useState(() => startAt);
   const playerRef = useRef<any>(null);
   const containerId = useRef(`yt-container-${Math.random().toString(36).substring(2, 9)}`);
@@ -79,6 +80,10 @@ export function VideoSlide({
               }
             },
             onStateChange: (event: any) => {
+              // 1 means playing
+              if (event.data === 1 && isMounted) {
+                setHasStartedPlaying(true);
+              }
               // 0 means ended
               if (event.data === 0 && isMounted) {
                 if (onProgressUpdateRef.current) {
@@ -226,31 +231,11 @@ export function VideoSlide({
       {/* Transparent Overlay to block interactive click-jacking which disrupts the sign display loop */}
       <div className="absolute inset-0 z-10 bg-transparent" />
 
-      {/* Floating Audio Toggle Controls */}
-      <div className="absolute bottom-10 left-6 md:left-20 z-20 flex items-center gap-3">
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // Avoid triggering full screen pause
-            setIsMuted(!isMuted);
-          }}
-          className="flex items-center gap-2.5 bg-black/75 border border-white/20 hover:border-red-600/50 hover:bg-black text-white px-4 py-2.5 text-xs font-mono tracking-widest uppercase transition-all duration-300 rounded-sm cursor-pointer shadow-lg outline-none"
-        >
-          {isMuted ? (
-            <>
-              <VolumeX className="w-4 h-4 text-red-500 animate-pulse" />
-              <span>Unmute Video</span>
-            </>
-          ) : (
-            <>
-              <Volume2 className="w-4 h-4 text-emerald-400" />
-              <span>Mute Audio</span>
-            </>
-          )}
-        </button>
-        <p className="text-[10px] text-white/40 font-mono tracking-wider italic">
-          *Tap to toggle audio track
-        </p>
-      </div>
+      {/* Solid Black mask to completely hide YouTube's initial loading/unpausing stutters */}
+      <div 
+        className="absolute inset-0 bg-black z-20 pointer-events-none transition-opacity duration-700 ease-out"
+        style={{ opacity: hasStartedPlaying ? 0 : 1 }}
+      />
 
       {/* Visual Indicator overlay if paused */}
       <AnimatePresence>
@@ -265,11 +250,6 @@ export function VideoSlide({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Stage Live Sign Indicator */}
-      <div className="absolute top-0 right-0 bg-red-600 text-white font-sans px-5 py-2 text-[10px] uppercase font-black tracking-widest leading-none shadow-lg z-25 select-none rounded-bl-sm">
-        Video Interstitial
-      </div>
     </motion.div>
   );
 }

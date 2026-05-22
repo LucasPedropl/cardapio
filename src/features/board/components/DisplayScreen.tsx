@@ -149,13 +149,15 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
       className="w-full h-screen bg-[#050505] overflow-hidden relative select-none cursor-pointer"
     >
       {/* Dynamic Floating Command Instructions */}
-      <div className="absolute top-4 left-4 z-50 text-white/20 hover:text-white/40 transition-colors text-[9px] font-mono uppercase tracking-widest pointer-events-none flex items-center gap-3">
-        <span>ESC: EXIT</span>
-        <span>•</span>
-        <span>SPACEBAR: {isPaused ? "RESUME" : "PAUSE"}</span>
-        <span>•</span>
-        <span>RIGHT ARROW: SKIP</span>
-      </div>
+      {currentItem?.type !== "video" && (
+        <div className="absolute top-4 left-4 z-50 text-white/20 hover:text-white/40 transition-colors text-[9px] font-mono uppercase tracking-widest pointer-events-none flex items-center gap-3">
+          <span>ESC: EXIT</span>
+          <span>•</span>
+          <span>SPACEBAR: {isPaused ? "RESUME" : "PAUSE"}</span>
+          <span>•</span>
+          <span>RIGHT ARROW: SKIP</span>
+        </div>
+      )}
 
       {/* Slide Carousel render */}
       <AnimatePresence mode="wait">
