@@ -236,20 +236,6 @@ export function VideoSlide({
         className="absolute inset-0 bg-black z-20 pointer-events-none transition-opacity duration-700 ease-out"
         style={{ opacity: hasStartedPlaying ? 0 : 1 }}
       />
-
-      {/* Visual Indicator overlay if paused */}
-      <AnimatePresence>
-        {isPaused && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 border border-white/10 p-6 rounded-full z-30 flex items-center justify-center shadow-2xl"
-          >
-            <Pause className="w-10 h-10 text-red-500 animate-pulse" />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
