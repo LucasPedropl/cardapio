@@ -6,6 +6,9 @@ interface VideoSlideProps {
   url: string;
   onComplete: () => void;
   isPaused: boolean;
+  startAt?: number;
+  maxDuration?: number;
+  onProgressUpdate?: (seconds: number) => void;
 }
 
 function extractYouTubeID(url: string): string | null {
@@ -14,7 +17,14 @@ function extractYouTubeID(url: string): string | null {
   return (match && match[1]) ? match[1] : null;
 }
 
-export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
+export function VideoSlide({ 
+  url, 
+  onComplete, 
+  isPaused,
+  startAt = 0,
+  maxDuration,
+  onProgressUpdate
+}: VideoSlideProps) {
   const [isMuted, setIsMuted] = useState(false);
   const playerRef = useRef<any>(null);
   const containerId = useRef(`yt-container-${Math.random().toString(36).substring(2, 9)}`);
@@ -59,6 +69,9 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
             onStateChange: (event: any) => {
               // 0 means ended
               if (event.data === 0 && isMounted) {
+                if (onProgressUpdate) {
+                  onProgressUpdate(0);
+                }
                 onComplete();
               }
             },
@@ -137,6 +150,44 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
     }
   }, [isPaused]);
 
+  // Poll playback progress and handle chunk limits
+  useEffect(() => {
+    if (isPaused || !playerRef.current) return;
+    
+    let intervalId: any;
+    
+    const startPolling = () => {
+      intervalId = setInterval(() => {
+        if (playerRef.current && typeof playerRef.current.getCurrentTime === "function") {
+          try {
+            const currentTime = playerRef.current.getCurrentTime();
+            if (currentTime > 0) {
+              if (onProgressUpdate) {
+                onProgressUpdate(currentTime);
+              }
+              
+              if (maxDuration) {
+                const elapsedSinceStart = currentTime - startAt;
+                if (elapsedSinceStart >= maxDuration) {
+                  clearInterval(intervalId);
+                  onComplete();
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Error polling playback position:", err);
+          }
+        }
+      }, 500);
+    };
+
+    startPolling();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isPaused, startAt, maxDuration, onProgressUpdate, onComplete]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -151,7 +202,7 @@ export function VideoSlide({ url, onComplete, isPaused }: VideoSlideProps) {
           <iframe
             id={containerId.current}
             className="w-full h-full"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${startAt > 0 ? `&start=${Math.floor(startAt)}` : ""}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             title="YouTube video player"
             frameBorder="0"

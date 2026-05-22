@@ -19,6 +19,8 @@ export const boardConfigSchema = z.object({
     AVAILABLE_SLIDES.reduce((acc, s) => ({ ...acc, [s.id]: s.id !== "video" }), {})
   ),
   interleaveVideo: z.boolean().default(false),
+  splitVideoChunks: z.boolean().default(false),
+  videoChunkDuration: z.number().min(3, "Min 3s").max(600, "Max 10m").default(15),
 });
 
 export type BoardConfig = z.infer<typeof boardConfigSchema>;

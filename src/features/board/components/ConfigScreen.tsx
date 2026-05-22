@@ -15,11 +15,13 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
     watch,
     formState: { errors },
   } = useForm<Omit<BoardConfig, "playlistOrder" | "enabledSlides">>({
-    resolver: zodResolver(boardConfigSchema.pick({ slideDuration: true, youtubeUrl: true, interleaveVideo: true })) as any,
+    resolver: zodResolver(boardConfigSchema.pick({ slideDuration: true, youtubeUrl: true, interleaveVideo: true, splitVideoChunks: true, videoChunkDuration: true })) as any,
     defaultValues: {
       slideDuration: 6,
       youtubeUrl: "",
       interleaveVideo: false,
+      splitVideoChunks: false,
+      videoChunkDuration: 15,
     },
   });
 
@@ -71,6 +73,8 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
       playlistOrder: playlistOrder,
       enabledSlides: finalEnabled,
       interleaveVideo: data.interleaveVideo,
+      splitVideoChunks: data.splitVideoChunks,
+      videoChunkDuration: data.videoChunkDuration,
     });
   };
 
@@ -147,6 +151,46 @@ export function ConfigScreen({ onStart }: ConfigScreenProps) {
                     Desativado: Exibe todos os slides juntos e o vídeo apenas ao final do ciclo.
                   </span>
                 </div>
+              </div>
+
+              {/* Split Video Into Chunks Toggle */}
+              <div className="flex flex-col gap-3 bg-black/40 border border-[#222]/60 p-4 rounded-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="splitVideoChunks"
+                      type="checkbox"
+                      {...register("splitVideoChunks")}
+                      className="w-4 h-4 bg-[#0A0A0A] border-[#2a2a2a] text-red-600 rounded-sm focus:ring-0 cursor-pointer accent-red-600"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label htmlFor="splitVideoChunks" className="text-xs font-medium text-white cursor-pointer select-none">
+                      Dividir Vídeo em Partes (Chunks)
+                    </label>
+                    <span className="text-[10px] text-zinc-500 font-light mt-0.5 leading-relaxed">
+                      Ativado: Salva de onde o vídeo parou e continua na próxima exibição. Ideal para vídeos longos.
+                    </span>
+                  </div>
+                </div>
+
+                {watch("splitVideoChunks") && (
+                  <div className="mt-2 pl-6 space-y-1.5 border-l border-red-600/35">
+                    <label htmlFor="videoChunkDuration" className="block text-[9px] uppercase tracking-widest text-[#999] font-bold">
+                      Duração por Parte (Segundos)
+                    </label>
+                    <input
+                      id="videoChunkDuration"
+                      type="number"
+                      {...register("videoChunkDuration", { valueAsNumber: true })}
+                      className="w-full bg-black border border-[#2a2a2a] px-3 py-1.5 text-xs text-white font-mono outline-none focus:border-red-600 transition-colors"
+                      placeholder="15"
+                    />
+                    {errors.videoChunkDuration && (
+                      <p className="text-red-500 text-[10px] font-mono">{errors.videoChunkDuration.message}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Dynamic Playlist Sequence Customizer */}

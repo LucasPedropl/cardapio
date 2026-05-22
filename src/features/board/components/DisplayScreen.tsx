@@ -26,6 +26,7 @@ type SlideItem =
 export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   // Fallbacks in case config array fields are empty or undefined
   const rawOrder = config.playlistOrder || [];
@@ -199,6 +200,9 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
             key={`${currentItem.id}-${currentIndex}`} // Forces hard remount each loop
             url={currentItem.url}
             isPaused={isPaused}
+            startAt={config.splitVideoChunks ? videoProgress : 0}
+            maxDuration={config.splitVideoChunks ? config.videoChunkDuration : undefined}
+            onProgressUpdate={config.splitVideoChunks ? setVideoProgress : undefined}
             onComplete={nextSlide}
           />
         )}
