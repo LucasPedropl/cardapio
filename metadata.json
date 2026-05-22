@@ -1,0 +1,6 @@
+{
+  "name": "Digital Menu Board",
+  "description": "A digital signage application replicating real-world restaurant displays, with alternating product slides and full-screen video interstitials.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
