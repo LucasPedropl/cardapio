@@ -87,3 +87,47 @@ export const GRID_PRODUCTS: Product[] = [
     imageUrl: "https://images.unsplash.com/photo-1531749668029-2db88e4b76ce?auto=format&fit=crop&w=600&q=80"
   }
 ];
+
+// Curated Sweet Desserts
+export const DESSERT_PRODUCTS: Product[] = [
+  {
+    id: "de1",
+    name: "Lava Chocolate Cake",
+    description: "Warm dark chocolate cake with a molten center, served with authentic madagascar vanilla bean gelato.",
+    price: "$7.50",
+    imageUrl: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "de2",
+    name: "Berry Mascarpone Tart",
+    description: "Crispy sweet crust filled with organic mascarpone creme and loaded with local hand-picked wild berries.",
+    price: "$6.90",
+    imageUrl: "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "de3",
+    name: "Salted Caramel Brownie",
+    description: "Fudgy triple chocolate brownie infused with fleur de sel caramel swirls.",
+    price: "$5.50",
+    imageUrl: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80" // Fallback standard dessert
+  }
+];
+
+// Rich Fresh Salads
+export const SALAD_PRODUCTS: Product[] = [
+  {
+    id: "sa1",
+    name: "Avocado Quinoa Bowl",
+    description: "Organic tricolor quinoa, sliced Hass avocado, heirloom cherry tomatoes, wild arugula, and citrus vinaigrette dressing.",
+    price: "$10.50",
+    imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: "sa2",
+    name: "Tuscan Grilled Caesar",
+    description: "Lightly charred romaine hearts, shaved artisan pecorino romano cheese, herb sourdough croutons, and house garlic caesar.",
+    price: "$9.00",
+    imageUrl: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=800&q=80"
+  }
+];
+
