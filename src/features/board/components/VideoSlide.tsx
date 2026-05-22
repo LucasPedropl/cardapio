@@ -214,16 +214,16 @@ export function VideoSlide({
       className="absolute inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden"
     >
       {/* Container Element injected into by YouTube Player API */}
-      <div className="absolute inset-0 w-full h-full relative z-0 scale-105 pointer-events-none">
+      <div className="absolute inset-0 w-full h-full relative z-0 overflow-hidden pointer-events-none select-none">
         {videoId && (
           <iframe
             id={containerId.current}
-            className="w-full h-full"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${initialStartAt > 0 ? `&start=${Math.floor(initialStartAt)}` : ""}`}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] max-w-none"
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&hl=pt&cc_load_policy=0&origin=${encodeURIComponent(window.location.origin)}${initialStartAt > 0 ? `&start=${Math.floor(initialStartAt)}` : ""}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             title="YouTube video player"
             frameBorder="0"
-            style={{ width: "100%", height: "100%", border: "none" }}
+            style={{ border: "none" }}
           />
         )}
       </div>
