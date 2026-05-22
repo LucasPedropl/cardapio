@@ -26,15 +26,27 @@ export function VideoSlide({
   onProgressUpdate
 }: VideoSlideProps) {
   const [isMuted, setIsMuted] = useState(false);
+  const [initialStartAt] = useState(() => startAt);
   const playerRef = useRef<any>(null);
   const containerId = useRef(`yt-container-${Math.random().toString(36).substring(2, 9)}`);
   const videoId = extractYouTubeID(url);
+
+  const onCompleteRef = useRef(onComplete);
+  const onProgressUpdateRef = useRef(onProgressUpdate);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    onProgressUpdateRef.current = onProgressUpdate;
+  }, [onProgressUpdate]);
 
   // Load the YouTube Iframe Player API script if not present
   useEffect(() => {
     if (!videoId) {
       console.error("Invalid YouTube URL");
-      onComplete();
+      onCompleteRef.current();
       return;
     }
 
@@ -69,23 +81,23 @@ export function VideoSlide({
             onStateChange: (event: any) => {
               // 0 means ended
               if (event.data === 0 && isMounted) {
-                if (onProgressUpdate) {
-                  onProgressUpdate(0);
+                if (onProgressUpdateRef.current) {
+                  onProgressUpdateRef.current(0);
                 }
-                onComplete();
+                onCompleteRef.current();
               }
             },
             onError: (err: any) => {
               if (isMounted) {
                 console.error("YouTube Player error encountered, skipping.", err);
-                onComplete();
+                onCompleteRef.current();
               }
             },
           },
         });
       } catch (err) {
         console.error("Error creating YT.Player on iframe:", err);
-        onComplete();
+        onCompleteRef.current();
       }
     };
 
@@ -152,7 +164,7 @@ export function VideoSlide({
 
   // Poll playback progress and handle chunk limits
   useEffect(() => {
-    if (isPaused || !playerRef.current) return;
+    if (isPaused) return;
     
     let intervalId: any;
     
@@ -162,15 +174,15 @@ export function VideoSlide({
           try {
             const currentTime = playerRef.current.getCurrentTime();
             if (currentTime > 0) {
-              if (onProgressUpdate) {
-                onProgressUpdate(currentTime);
+              if (onProgressUpdateRef.current) {
+                onProgressUpdateRef.current(currentTime);
               }
               
               if (maxDuration) {
-                const elapsedSinceStart = currentTime - startAt;
+                const elapsedSinceStart = currentTime - initialStartAt;
                 if (elapsedSinceStart >= maxDuration) {
                   clearInterval(intervalId);
-                  onComplete();
+                  onCompleteRef.current();
                 }
               }
             }
@@ -186,7 +198,7 @@ export function VideoSlide({
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isPaused, startAt, maxDuration, onProgressUpdate, onComplete]);
+  }, [isPaused, initialStartAt, maxDuration]);
 
   return (
     <motion.div
@@ -202,7 +214,7 @@ export function VideoSlide({
           <iframe
             id={containerId.current}
             className="w-full h-full"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${startAt > 0 ? `&start=${Math.floor(startAt)}` : ""}`}
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}${initialStartAt > 0 ? `&start=${Math.floor(initialStartAt)}` : ""}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             title="YouTube video player"
             frameBorder="0"
