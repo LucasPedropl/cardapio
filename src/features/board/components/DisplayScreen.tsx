@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "motion/react";
 import { ProductSlide } from "./ProductSlide";
+import { DrinkSlide } from "./DrinkSlide";
+import { GridSlide } from "./GridSlide";
 import { VideoSlide } from "./VideoSlide";
 import { MOCK_PRODUCTS } from "../data/products";
 import type { BoardConfig } from "../schemas/config";
@@ -12,18 +14,28 @@ interface DisplayScreenProps {
 
 type SlideItem = 
   | { type: "product"; data: typeof MOCK_PRODUCTS[0]; id: string }
+  | { type: "drinks"; id: string }
+  | { type: "grid"; id: string }
   | { type: "video"; url: string; id: string };
 
 export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Setup the playlist sequence
-  const playlist: SlideItem[] = MOCK_PRODUCTS.map((p) => ({
-    type: "product",
-    data: p,
-    id: `product-${p.id}`,
-  }));
+  // Build the playlist beautifully sequence
+  const playlist: SlideItem[] = [
+    // 1st burger
+    { type: "product", data: MOCK_PRODUCTS[0], id: `product-${MOCK_PRODUCTS[0].id}` },
+    // 2nd burger
+    { type: "product", data: MOCK_PRODUCTS[1], id: `product-${MOCK_PRODUCTS[1].id}` },
+    // Beverages slide
+    { type: "drinks", id: "slide-drinks-special" },
+    // 3rd food item
+    { type: "product", data: MOCK_PRODUCTS[2], id: `product-${MOCK_PRODUCTS[2].id}` },
+    // Mixed sides grid
+    { type: "grid", id: "slide-grid-sides" },
+  ];
 
+  // Insert YouTube interstitial at the end of the rotation if configured
   if (config.youtubeUrl) {
     playlist.push({
       type: "video",
@@ -39,7 +51,7 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
   };
 
   useEffect(() => {
-    // If the slide is a video, progression is handled by onEnded callback in VideoSlide
+    // If the slide is a video, transition is handled by onEnded callback in VideoSlide
     if (currentItem.type === "video") return;
 
     const timer = setTimeout(nextSlide, config.slideDuration * 1000);
@@ -58,24 +70,38 @@ export function DisplayScreen({ config, onExit }: DisplayScreenProps) {
   }, [onExit]);
 
   return (
-    <div className="w-full h-screen bg-black overflow-hidden relative cursor-none select-none">
-       {/* Small hint on first load, fades out quickly */}
-      <div className="absolute top-4 left-4 z-50 text-white/30 text-xs font-mono uppercase animate-pulse pointer-events-none fade-out-after-5s">
+    <div className="w-full h-screen bg-[#050505] overflow-hidden relative select-none">
+      {/* Press esc indicator */}
+      <div className="absolute top-4 left-4 z-50 text-white/20 text-[10px] font-mono uppercase tracking-widest pointer-events-none fade-out-after-5s">
         Press ESC to exit
       </div>
 
       <AnimatePresence mode="wait">
         {currentItem.type === "product" && (
-          <ProductSlide
-            key={currentItem.id}
-            product={currentItem.data}
-            index={MOCK_PRODUCTS.indexOf(currentItem.data)}
-            total={MOCK_PRODUCTS.length}
+          <ProductSlide 
+            key={currentItem.id} 
+            product={currentItem.data} 
+            index={currentIndex}
+            total={playlist.length}
+          />
+        )}
+        {currentItem.type === "drinks" && (
+          <DrinkSlide 
+            key={currentItem.id} 
+            index={currentIndex}
+            total={playlist.length}
+          />
+        )}
+        {currentItem.type === "grid" && (
+          <GridSlide 
+            key={currentItem.id} 
+            index={currentIndex}
+            total={playlist.length}
           />
         )}
         {currentItem.type === "video" && (
           <VideoSlide
-            key={`${currentItem.id}-${currentIndex}`} // Force remount if looping through the same video
+            key={`${currentItem.id}-${currentIndex}`} // Force remount each time the user reaches the video
             url={currentItem.url}
             onComplete={nextSlide}
           />
